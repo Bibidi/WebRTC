@@ -34,9 +34,8 @@ const App = () => {
       query: {},
     })
   );
-
-  const mySdp = null;
-  const candidates = [];
+  const [mySdp, setMySdp] = useState(null);
+  let candidates = [];
 
   const configuration = { "iceServers": [{ "url": "stun:stun.l.google.com:19302" }] };
   const pc = new RTCPeerConnection(configuration);
@@ -52,6 +51,7 @@ const App = () => {
   };
 
   pc.onaddstream = (e) => {
+    console.log(e);
     setRemoteStream(e.stream);
   };
 
@@ -99,15 +99,16 @@ const App = () => {
       });
 
       socket.on('offerOrAnswer', (sdp) => {
-        mySdp = JSON.stringify(sdp);
+        setMySdp(JSON.stringify(sdp));
         pc.setRemoteDescription(new RTCSessionDescription(sdp));
       });
 
       socket.on('candidate', (candidate) => {
+        console.log(candidate);
         pc.addIceCandidate(new RTCIceCandidate(candidate));
       });
     }
-  }, []);
+  });
 
   useEffect(() => {
     if (!localStream) {
@@ -137,7 +138,13 @@ const App = () => {
   }, [localStream]);
 
   const RemoteVideo = remoteStream ?
-    (<RTCView streamURL={remoteStream?.toURL()} style={{ width: 100, height: 200 }} />) :
+    (<RTCView
+      streamURL={remoteStream?.toURL()}
+      style={{ width: '100%', height: '100%', backgroundColor: 'black' }}
+      mirror={true}
+      objectFit="contain"
+    />
+    ) :
     (
       <View styles={{ display: 'flex', justifyContent: 'center', alignItmes: 'center' }}>
         <Text style={{ fontSize: 22, color: 'black' }}>
